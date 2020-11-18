@@ -1,0 +1,17 @@
+{
+  "name": "changelogkyper",
+  "version": "1.0.0",
+  "description": "",
+  "bin": {
+    "changelogkyper": "./cli.js"
+  },
+  "keywords": [],
+  "author": "Floran Pagliai",
+  "license": "ISC",
+  "dependencies": {
+    "enquirer": "^2.3.6",
+    "meow": "^8.0.0",
+    "git-remote-origin-url": "^3.1.0",
+    "js-yaml": "^3.14.0"
+  }
+}
