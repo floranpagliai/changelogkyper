@@ -116,17 +116,17 @@ let config = {};
                 }
             });
             const now = new Date()
-            let content = '## [Release ' + cli.input[1] + '] - ' + now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate() + '\n'
+            let content = '## [' + cli.input[1] + '] - ' + now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate() + '\n'
             changelogTypes.forEach(function (type) {
                 if (changelogs[type].length > 0) {
                     content += '### ' + type + '\n'
                     changelogs[type].forEach(function (changelog){
                         content += '- ' + changelog + '\n'
                     })
+                    content += '\n'
                 }
 
             })
-            content += '\n'
             try {
                 content += fs.readFileSync(changelogFile)
             } catch (e) {}
