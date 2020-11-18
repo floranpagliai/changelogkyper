@@ -104,6 +104,10 @@ let config = {};
             if (err) {
                 return console.log('Unable to scan directory: ' + err);
             }
+            if (files.length === 1) {
+                console.error('No changelogs to release')
+                process.exit(1)
+            }
             files.forEach(function (file) {
                 if (file !== 'config.json') {
                     let fileContents = fs.readFileSync(changelogPath + '/' + file, 'utf8');
