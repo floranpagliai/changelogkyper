@@ -10,8 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "enquirer": "^2.3.6",
+    "js-yaml": "^3.14.0",
     "meow": "^8.0.0",
-    "git-remote-origin-url": "^3.1.0",
-    "js-yaml": "^3.14.0"
+    "sanitize-filename": "^1.6.3"
   }
 }

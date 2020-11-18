@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 
 const meow = require('meow')
+const path = require('path');
 const fs = require('fs')
 const yaml = require('js-yaml')
 const {prompt} = require('enquirer');
+const sanitize = require("sanitize-filename");
+
+const changelogPath = './.changelogkyper'
+const configFile = changelogPath + '/config.json'
+const changelogFile = './CHANGELOG.md'
+const changelogTypes = ['Added', 'Changed', 'Deprecated','Removed','Fixed','Security']
 
 let config = {};
 
@@ -18,7 +25,7 @@ let config = {};
     }
 
     if (cli.input[0] === 'init') {
-        fs.mkdir('.changelogs', { recursive: true }, (err) => {
+        fs.mkdir(changelogPath, { recursive: true }, (err) => {
             if (err) throw err;
         });
 
@@ -36,11 +43,11 @@ let config = {};
         let answers = await prompt(questions);
         const jsonString = JSON.stringify(answers)
         console.log(jsonString);
-        fs.writeFileSync('.changelogs/config.json', jsonString)
+        fs.writeFileSync(configFile, jsonString)
     }
 
     try {
-        const jsonString = fs.readFileSync('.changelogs/config.json');
+        const jsonString = fs.readFileSync(configFile);
         config = JSON.parse(jsonString);
     } catch (e) {
         console.error('changelogkyper need to be initialized.')
@@ -53,7 +60,7 @@ let config = {};
                 type: 'select',
                 name: 'type',
                 message: 'What type of change have you done?',
-                choices: ['Added', 'Changed', 'Deprecated','Removed','Fixed','Security']
+                choices: changelogTypes
             },
             {
                 type: 'numeral',
@@ -81,6 +88,54 @@ let config = {};
             type: answers['type']
         };
         let yamlStr = yaml.safeDump(data);
-        fs.writeFileSync('.changelogs/'+answers['title']+'.yml', yamlStr, 'utf8');
+        fs.writeFileSync(changelogPath+'/'+sanitize(answers['title']).replace(/\s/g, '-')+'.yml', yamlStr, 'utf8');
+    }
+
+    if (cli.input[0] === 'release') {
+        if (typeof cli.input[1] === 'undefined') {
+            console.error('No version provided.')
+            cli.showHelp(1)
+        }
+        let changelogs = [];
+        changelogTypes.forEach(function (type) {
+            changelogs[type] = [];
+        })
+        fs.readdir(changelogPath, function (err, files) {
+            if (err) {
+                return console.log('Unable to scan directory: ' + err);
+            }
+            files.forEach(function (file) {
+                if (file !== 'config.json') {
+                    let fileContents = fs.readFileSync(changelogPath + '/' + file, 'utf8');
+                    let data = yaml.safeLoad(fileContents);
+                    changelogs[data['type']].push(data['title'])
+                }
+            });
+            let content = ''
+            const now = new Date()
+            try {
+                content = fs.readFileSync(changelogFile)
+            } catch (e) {}
+
+            content += '## [Release ' + cli.input[1] + '] - ' + now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate() + '\n'
+            changelogTypes.forEach(function (type) {
+                if (changelogs[type].length > 0) {
+                    content += '### ' + type + '\n'
+                    changelogs[type].forEach(function (changelog){
+                        content += '- ' + changelog + '\n'
+                    })
+                }
+
+            })
+            content += '\n'
+            fs.writeFileSync(changelogFile, content);
+
+            files.forEach(function (file) {
+                if (file !== 'config.json') {
+                    fs.unlinkSync(changelogPath + '/' + file)
+                }
+            });
+        });
+
     }
 }());
