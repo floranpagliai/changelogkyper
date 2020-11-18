@@ -115,13 +115,8 @@ let config = {};
                     changelogs[data['type']].push(data['title'])
                 }
             });
-            let content = ''
             const now = new Date()
-            try {
-                content = fs.readFileSync(changelogFile)
-            } catch (e) {}
-
-            content += '## [Release ' + cli.input[1] + '] - ' + now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate() + '\n'
+            let content = '## [Release ' + cli.input[1] + '] - ' + now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate() + '\n'
             changelogTypes.forEach(function (type) {
                 if (changelogs[type].length > 0) {
                     content += '### ' + type + '\n'
@@ -132,6 +127,9 @@ let config = {};
 
             })
             content += '\n'
+            try {
+                content += fs.readFileSync(changelogFile)
+            } catch (e) {}
             fs.writeFileSync(changelogFile, content);
 
             files.forEach(function (file) {

@@ -15,7 +15,6 @@ jobs:
       - uses: actions/setup-node@v1
       - run: npm install
       - run: npm version ${{ github.event.release.tag_name }}
-      - run: npm run build
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
