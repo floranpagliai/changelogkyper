@@ -1,6 +1,6 @@
 #!/usr/bin/env node
+const pkg = require('./package.json');
 
-const meow = require('meow')
 const path = require('path');
 const fs = require('fs')
 const yaml = require('js-yaml')
@@ -10,22 +10,23 @@ const sanitize = require("sanitize-filename");
 const changelogPath = './.changelogkyper'
 const configFile = changelogPath + '/config.json'
 const changelogFile = './CHANGELOG.md'
-const changelogTypes = ['Added', 'Changed', 'Deprecated','Removed','Fixed','Security']
+const changelogTypes = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security']
 
 let config = {};
 
-(async function() {
-    const cli = meow(`
-  Usage
-    $ changelogkyper <init|add|release>
-`)
+const Commander = require('commander');
+const program = new Commander.Command();
 
-    if (cli.input.length === 0) {
-        cli.showHelp(1)
-    }
+program
+    .version(pkg.version)
+    .usage("$ changelogkyper command [options]")
+    .option('-d, --debug', 'Activate debug mode')
 
-    if (cli.input[0] === 'init') {
-        fs.mkdir(changelogPath, { recursive: true }, (err) => {
+program
+    .command('init')
+    .description('Initialize working directory and config file.')
+    .action(async function () {
+        fs.mkdir(changelogPath, {recursive: true}, (err) => {
             if (err) throw err;
         });
 
@@ -36,25 +37,25 @@ let config = {};
                 message: 'What is your repo url pointing to issues (e.g. https://github.com/floranpagliai/changelogkyper/issues/',
                 validate: function (value, state, item, index) {
                     return value !== '';
-
+                },
+                result: function (value) {
+                    return value.trim()
                 }
             }
         ];
         let answers = await prompt(questions);
         const jsonString = JSON.stringify(answers)
-        console.log(jsonString);
+        if (program.debug) {
+            console.log(jsonString);
+        }
         fs.writeFileSync(configFile, jsonString)
-    }
+    });
 
-    try {
-        const jsonString = fs.readFileSync(configFile);
-        config = JSON.parse(jsonString);
-    } catch (e) {
-        console.error('changelogkyper need to be initialized.')
-        cli.showHelp(1)
-    }
-
-    if (cli.input[0] === 'add') {
+program
+    .command('add')
+    .description('Add a changelog entry to non released changes.')
+    .action(async function () {
+        readConfig()
         const questions = [
             {
                 type: 'select',
@@ -81,21 +82,21 @@ let config = {};
 
         let title = answers['title']
         if (answers['id'] !== 0) {
-            title = '[#'+answers['id']+']('+config['repo_issues_url'] + answers['id'] +') ' + answers['title']
+            title = '[#' + answers['id'] + '](' + config['repo_issues_url'] + answers['id'] + ') ' + answers['title']
         }
         let data = {
             title: title,
             type: answers['type']
         };
         let yamlStr = yaml.safeDump(data);
-        fs.writeFileSync(changelogPath+'/'+sanitize(answers['title']).replace(/\s/g, '-')+'.yml', yamlStr, 'utf8');
-    }
+        fs.writeFileSync(changelogPath + '/' + sanitize(answers['title']).replace(/\s/g, '-') + '.yml', yamlStr, 'utf8');
+    });
 
-    if (cli.input[0] === 'release') {
-        if (typeof cli.input[1] === 'undefined') {
-            console.error('No version provided.')
-            cli.showHelp(1)
-        }
+program
+    .command('release <version>')
+    .description('Compile non released changes into changelog.')
+    .action(async function (version) {
+        readConfig()
         let changelogs = [];
         changelogTypes.forEach(function (type) {
             changelogs[type] = [];
@@ -116,7 +117,7 @@ let config = {};
                 }
             });
             const now = new Date()
-            let content = '## [' + cli.input[1] + '] - ' + now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate() + '\n'
+            let content = '## [' + version + '] - ' + now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate() + '\n'
             changelogTypes.forEach(function (type) {
                 if (changelogs[type].length > 0) {
                     content += '### ' + type + '\n'
@@ -138,6 +139,21 @@ let config = {};
                 }
             });
         });
+    });
 
+
+program.parse(process.argv)
+
+if (program.debug) {
+    console.log(program.opts());
+}
+
+function readConfig() {
+    try {
+        const jsonString = fs.readFileSync(configFile);
+        config = JSON.parse(jsonString);
+    } catch (e) {
+        console.error('changelogkyper need to be initialized.')
+        process.exit(1)
     }
-}());
+}

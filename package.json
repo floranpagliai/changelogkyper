@@ -9,9 +9,9 @@
   "author": "Floran Pagliai",
   "license": "ISC",
   "dependencies": {
+    "commander": "^6.2.0",
     "enquirer": "^2.3.6",
     "js-yaml": "^3.14.0",
-    "meow": "^8.0.0",
     "sanitize-filename": "^1.6.3"
   }
 }
