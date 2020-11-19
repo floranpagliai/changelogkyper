@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 const pkg = require('./package.json');
 
-const path = require('path');
 const fs = require('fs')
 const yaml = require('js-yaml')
 const {prompt} = require('enquirer');
 const sanitize = require("sanitize-filename");
+const parseChangelog = require('changelog-parser')
 
 const changelogPath = './.changelogkyper'
 const configFile = changelogPath + '/config.json'
@@ -97,6 +97,11 @@ program
     .description('Compile non released changes into changelog.')
     .action(async function (version) {
         readConfig()
+        const changelogVersion = await getChangelogVersion(version)
+        if (changelogVersion !== null) {
+            console.log('This version already exist in changelog.')
+            process.exit(1);
+        }
         let changelogs = [];
         changelogTypes.forEach(function (type) {
             changelogs[type] = [];
@@ -141,6 +146,19 @@ program
         });
     });
 
+program
+    .command('show <version>')
+    .description('Show changelog section for version.')
+    .action(async function (version) {
+        readConfig()
+        const changelogVersion = await getChangelogVersion(version)
+        if (changelogVersion === null) {
+            console.log('No matching version found.')
+            process.exit(1);
+        }
+        console.log(changelogVersion.title)
+        console.log(changelogVersion.body)
+    });
 
 program.parse(process.argv)
 
@@ -156,4 +174,19 @@ function readConfig() {
         console.error('changelogkyper need to be initialized.')
         process.exit(1)
     }
+}
+
+async function getChangelogVersion(version) {
+    let data = null;
+    await parseChangelog(changelogFile, function (err, result) {
+        if (err) throw err
+
+        result.versions.forEach(function (versionParsed) {
+            if (version === versionParsed.version) {
+                data = versionParsed
+            }
+        })
+    })
+
+    return data
 }

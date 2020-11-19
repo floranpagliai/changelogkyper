@@ -1,3 +1,7 @@
+## [1.0.3] - 2020-10-19
+### Added
+- Show version command with changelog parsing
+
 ## [1.0.2] - 2020-10-18
 ### Changed
 - Line return after changelog type section

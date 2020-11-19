@@ -9,6 +9,7 @@
   "author": "Floran Pagliai",
   "license": "ISC",
   "dependencies": {
+    "changelog-parser": "^2.8.0",
     "commander": "^6.2.0",
     "enquirer": "^2.3.6",
     "js-yaml": "^3.14.0",
