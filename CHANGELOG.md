@@ -1,3 +1,9 @@
+# Changelog
+
+## [1.0.4] - 2020-10-20
+### Added
+- Markdown parse on release to handle title and description
+
 ## [1.0.3] - 2020-10-19
 ### Added
 - Show version command with changelog parsing

@@ -19,7 +19,7 @@ const program = new Commander.Command();
 
 program
     .version(pkg.version)
-    .usage("$ changelogkyper command [options]")
+    .usage("command [options]")
     .option('-d, --debug', 'Activate debug mode')
 
 program
@@ -97,14 +97,24 @@ program
     .description('Compile non released changes into changelog.')
     .action(async function (version) {
         readConfig()
-        const changelogVersion = await getChangelogVersion(version)
-        if (changelogVersion !== null) {
-            console.log('This version already exist in changelog.')
-            process.exit(1);
-        }
-        let changelogs = [];
+        const now = new Date()
+        const dateString = now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate()
+        let changelog = await getChangelog()
+        changelog.versions.forEach(function (versionParsed) {
+            if (version === versionParsed.version) {
+                console.log('This version already exist in changelog.')
+                process.exit(1);
+            }
+        })
+
+        let release = {
+            version: version,
+            title: '['+version+'] - ' + dateString,
+            date: dateString,
+            parsed: {}
+        };
         changelogTypes.forEach(function (type) {
-            changelogs[type] = [];
+            release.parsed[type] = [];
         })
         fs.readdir(changelogPath, function (err, files) {
             if (err) {
@@ -114,29 +124,17 @@ program
                 console.error('No changelogs to release')
                 process.exit(1)
             }
+
             files.forEach(function (file) {
                 if (file !== 'config.json') {
                     let fileContents = fs.readFileSync(changelogPath + '/' + file, 'utf8');
                     let data = yaml.safeLoad(fileContents);
-                    changelogs[data['type']].push(data['title'])
+                    release.parsed[data['type']].push(data['title'])
                 }
             });
-            const now = new Date()
-            let content = '## [' + version + '] - ' + now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate() + '\n'
-            changelogTypes.forEach(function (type) {
-                if (changelogs[type].length > 0) {
-                    content += '### ' + type + '\n'
-                    changelogs[type].forEach(function (changelog){
-                        content += '- ' + changelog + '\n'
-                    })
-                    content += '\n'
-                }
 
-            })
-            try {
-                content += fs.readFileSync(changelogFile)
-            } catch (e) {}
-            fs.writeFileSync(changelogFile, content);
+            changelog.versions.unshift(release)
+            writeChangelog(changelog)
 
             files.forEach(function (file) {
                 if (file !== 'config.json') {
@@ -176,17 +174,47 @@ function readConfig() {
     }
 }
 
-async function getChangelogVersion(version) {
+async function getChangelog() {
     let data = null;
     await parseChangelog(changelogFile, function (err, result) {
         if (err) throw err
-
-        result.versions.forEach(function (versionParsed) {
-            if (version === versionParsed.version) {
-                data = versionParsed
-            }
-        })
+        data = result
     })
 
     return data
+}
+
+function getChangelogVersion(version) {
+    let data = null;
+    const changelog = getChangelog()
+    changelog.versions.forEach(function (versionParsed) {
+        if (version === versionParsed.version) {
+            data = versionParsed.version
+        }
+    })
+    return data
+}
+
+function writeChangelog(changelog) {
+    let content = '';
+    if (typeof changelog.title !== 'undefined') {
+        content = '# ' + changelog.title + '\n\n';
+    }
+    if (typeof changelog.description !== 'undefined') {
+        content = '# ' + changelog.description + '\n\n';
+    }
+    changelog.versions.forEach(function (version) {
+        content += '## ' + version.title + '\n'
+        Object.entries(version.parsed).forEach(entry => {
+            const [type, logs] = entry;
+            if (logs.length > 0 && type !== '_') {
+                content += '### ' + type + '\n'
+                logs.forEach(function (log) {
+                    content += '- ' + log + '\n'
+                })
+                content += '\n'
+            }
+        });
+    })
+    fs.writeFileSync(changelogFile, content);
 }
