@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.5] - 2020-10-24
+### Added
+- Show unreleased changes
+
 ## [1.0.4] - 2020-10-20
 ### Added
 - Markdown parse on release to handle title and description
@@ -19,3 +23,4 @@
 ## [1.0.0] - 2020-10-18
 ### Added
 - Cli commands to add log and release logs
+

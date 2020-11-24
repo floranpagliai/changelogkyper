@@ -125,13 +125,7 @@ program
                 process.exit(1)
             }
 
-            files.forEach(function (file) {
-                if (file !== 'config.json') {
-                    let fileContents = fs.readFileSync(changelogPath + '/' + file, 'utf8');
-                    let data = yaml.safeLoad(fileContents);
-                    release.parsed[data['type']].push(data['title'])
-                }
-            });
+            release.parsed = getUnreleasedChangelogs(files)
 
             changelog.versions.unshift(release)
             writeChangelog(changelog)
@@ -145,17 +139,30 @@ program
     });
 
 program
-    .command('show <version>')
-    .description('Show changelog section for version.')
+    .command('show <version|unreleased>')
+    .description('Show changelog section for version or unreleased changes.')
     .action(async function (version) {
         readConfig()
-        const changelogVersion = await getChangelogVersion(version)
-        if (changelogVersion === null) {
-            console.log('No matching version found.')
-            process.exit(1);
+        if (version === 'unreleased') {
+            fs.readdir(changelogPath, function (err, files) {
+                let changelog = {
+                    versions: [{
+                        title: '[Unreleased]',
+                        parsed: getUnreleasedChangelogs(files)
+                    }]
+
+                }
+                console.log(format(changelog))
+            })
+        } else {
+            const changelogVersion = await getChangelogVersion(version)
+            if (changelogVersion === null) {
+                console.log('No matching version found.')
+                process.exit(1);
+            }
+            console.log(changelogVersion.title)
+            console.log(changelogVersion.body)
         }
-        console.log(changelogVersion.title)
-        console.log(changelogVersion.body)
     });
 
 program.parse(process.argv)
@@ -184,18 +191,19 @@ async function getChangelog() {
     return data
 }
 
-function getChangelogVersion(version) {
+async function getChangelogVersion(version) {
     let data = null;
-    const changelog = getChangelog()
+    const changelog = await getChangelog()
     changelog.versions.forEach(function (versionParsed) {
         if (version === versionParsed.version) {
-            data = versionParsed.version
+            data = versionParsed
         }
     })
+
     return data
 }
 
-function writeChangelog(changelog) {
+function format(changelog) {
     let content = '';
     if (typeof changelog.title !== 'undefined') {
         content = '# ' + changelog.title + '\n\n';
@@ -216,5 +224,26 @@ function writeChangelog(changelog) {
             }
         });
     })
-    fs.writeFileSync(changelogFile, content);
+
+    return content
+}
+
+function writeChangelog(changelog) {
+    fs.writeFileSync(changelogFile, format(changelog));
+}
+
+function getUnreleasedChangelogs(files) {
+    let release = {};
+    changelogTypes.forEach(function (type) {
+        release[type] = [];
+    })
+    files.forEach(function (file) {
+        if (file !== 'config.json') {
+            let fileContents = fs.readFileSync(changelogPath + '/' + file, 'utf8');
+            let data = yaml.safeLoad(fileContents);
+            release[data['type']].push(data['title'])
+        }
+    });
+
+    return release;
 }
