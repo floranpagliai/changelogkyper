@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.7] - 2021-07-28
+### Fixed
+- Markdown parse on log with link
+
 ## [1.0.6] - 2020-02-10
 ### Fixed
 - Month format

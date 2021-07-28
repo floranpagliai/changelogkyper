@@ -183,7 +183,7 @@ function readConfig() {
 
 async function getChangelog() {
     let data = null;
-    await parseChangelog(changelogFile, function (err, result) {
+    await parseChangelog({filePath: changelogFile, removeMarkdown: false}, function (err, result) {
         if (err) throw err
         data = result
     })
@@ -213,16 +213,20 @@ function format(changelog) {
     }
     changelog.versions.forEach(function (version) {
         content += '## ' + version.title + '\n'
-        Object.entries(version.parsed).forEach(entry => {
-            const [type, logs] = entry;
-            if (logs.length > 0 && type !== '_') {
-                content += '### ' + type + '\n'
-                logs.forEach(function (log) {
-                    content += '- ' + log + '\n'
-                })
-                content += '\n'
-            }
-        });
+        if (version.body !== undefined) {
+            content += version.body + '\n\n'
+        } else {
+            Object.entries(version.parsed).forEach(entry => {
+                const [type, logs] = entry;
+                if (logs.length > 0 && type !== '_') {
+                    content += '### ' + type + '\n'
+                    logs.forEach(function (log) {
+                        content += '- ' + log + '\n'
+                    })
+                    content += '\n'
+                }
+            });
+        }
     })
 
     return content

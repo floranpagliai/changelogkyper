@@ -10,9 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "changelog-parser": "^2.8.0",
-    "commander": "^6.2.0",
+    "commander": "^6.2.1",
     "enquirer": "^2.3.6",
-    "js-yaml": "^3.14.0",
+    "js-yaml": "^3.14.1",
     "sanitize-filename": "^1.6.3"
   }
 }
