@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.8] - 2021-10-23
+### Added
+- Readme
+
+### Fixed
+- Day format
+
 ## [1.0.7] - 2021-07-28
 ### Fixed
 - Markdown parse on log with link

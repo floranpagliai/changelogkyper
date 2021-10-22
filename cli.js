@@ -98,8 +98,9 @@ program
     .action(async function (version) {
         readConfig()
         const now = new Date()
-        const dateString = now.getFullYear() + '-' + ("0" + (now.getMonth() + 1)).slice(-2)  + '-' + now.getDate()
+        const dateString = now.getFullYear() + '-' + ("0" + (now.getMonth() + 1)).slice(-2)  + '-' + ("0" + (now.getDate() + 1)).slice(-2)
         let changelog = await getChangelog()
+
         changelog.versions.forEach(function (versionParsed) {
             if (version === versionParsed.version) {
                 console.log('This version already exist in changelog.')

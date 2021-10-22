@@ -1,7 +1,7 @@
 {
   "name": "changelogkyper",
   "version": "1.0.7",
-  "description": "",
+  "description": "A project to maintain a Changelog automatically and never have a merge conflict again.",
   "bin": {
     "changelogkyper": "./cli.js"
   },
