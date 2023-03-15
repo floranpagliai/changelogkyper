@@ -10,8 +10,6 @@ const parseChangelog = require('changelog-parser')
 const changelogPath = './.changelogkyper'
 const configFile = changelogPath + '/config.json'
 const changelogFile = './CHANGELOG.md'
-// const changelogTypes = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security']
-const changelogTypes = ['_']
 
 let config = {};
 
@@ -35,9 +33,19 @@ program
             {
                 type: 'input',
                 name: 'repo_issues_url',
-                message: 'What is your repo url pointing to issues (e.g. https://github.com/floranpagliai/changelogkyper/issues/',
+                message: 'What is your repo url pointing to issues (e.g. https://github.com/floranpagliai/changelogkyper/issues/)',
                 result: function (value) {
                     return value.trim()
+                }
+            },
+            {
+                type: 'input',
+                name: 'changelog_types',
+                message: 'List all changelog types allowed, separated by a `,` (e.g. Added,Fixed,Changed,Removed)',
+                result: function (value) {
+                    return value.split(',').map(function(item){
+                        return item.trim();
+                    });
                 }
             },
         ];
@@ -70,13 +78,15 @@ program
                 }
             }
         ];
+
+        changelogTypes = config['changelog_types'] || ['_'];
         if (changelogTypes.length > 1) {
             questions.unshift(
                 {
                     type: 'select',
                     name: 'type',
                     message: 'What type of change have you done?',
-                    hoices: changelogTypes
+                    choices: changelogTypes
                 },
             )
         }
@@ -88,7 +98,7 @@ program
         }
         let data = {
             title: title,
-            type: typeof answers['type'] !== 'undefined' ? answers['type'] : '_';
+            type: typeof answers['type'] !== 'undefined' ? answers['type'] : (changelogTypes[0] || '_'),
         };
         let yamlStr = yaml.safeDump(data);
         fs.writeFileSync(changelogPath + '/' + sanitize(answers['title']).replace(/\s/g, '-') + '.yml', yamlStr, 'utf8');
@@ -241,13 +251,14 @@ function writeChangelog(changelog) {
 
 function getUnreleasedChangelogs(files) {
     let release = {};
-    changelogTypes.forEach(function (type) {
-        release[type] = [];
-    })
     files.forEach(function (file) {
         if (file !== 'config.json') {
             let fileContents = fs.readFileSync(changelogPath + '/' + file, 'utf8');
             let data = yaml.safeLoad(fileContents);
+            if (typeof release[data['type']] === 'undefined') {
+                release[data['type']] = [];
+            }
+
             release[data['type']].push(data['title'])
         }
     });
