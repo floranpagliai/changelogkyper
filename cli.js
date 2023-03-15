@@ -230,7 +230,7 @@ function format(changelog) {
         }
     })
 
-    return content
+    return content.slice(0, -1); // Remove the last `\n`
 }
 
 function writeChangelog(changelog) {
