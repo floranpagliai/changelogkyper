@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.10] - 2023-03-15
+### Fixed
+- Last line return
+
 ## [1.0.8] - 2021-10-23
 ### Added
 - Readme

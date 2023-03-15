@@ -10,7 +10,8 @@ const parseChangelog = require('changelog-parser')
 const changelogPath = './.changelogkyper'
 const configFile = changelogPath + '/config.json'
 const changelogFile = './CHANGELOG.md'
-const changelogTypes = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security']
+// const changelogTypes = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security']
+const changelogTypes = ['_']
 
 let config = {};
 
@@ -35,13 +36,10 @@ program
                 type: 'input',
                 name: 'repo_issues_url',
                 message: 'What is your repo url pointing to issues (e.g. https://github.com/floranpagliai/changelogkyper/issues/',
-                validate: function (value, state, item, index) {
-                    return value !== '';
-                },
                 result: function (value) {
                     return value.trim()
                 }
-            }
+            },
         ];
         let answers = await prompt(questions);
         const jsonString = JSON.stringify(answers)
@@ -56,13 +54,7 @@ program
     .description('Add a changelog entry to non released changes.')
     .action(async function () {
         readConfig()
-        const questions = [
-            {
-                type: 'select',
-                name: 'type',
-                message: 'What type of change have you done?',
-                choices: changelogTypes
-            },
+        let questions = [
             {
                 type: 'numeral',
                 name: 'id',
@@ -78,6 +70,16 @@ program
                 }
             }
         ];
+        if (changelogTypes.length > 1) {
+            questions.unshift(
+                {
+                    type: 'select',
+                    name: 'type',
+                    message: 'What type of change have you done?',
+                    hoices: changelogTypes
+                },
+            )
+        }
         let answers = await prompt(questions);
 
         let title = answers['title']
@@ -86,7 +88,7 @@ program
         }
         let data = {
             title: title,
-            type: answers['type']
+            type: typeof answers['type'] !== 'undefined' ? answers['type'] : '_';
         };
         let yamlStr = yaml.safeDump(data);
         fs.writeFileSync(changelogPath + '/' + sanitize(answers['title']).replace(/\s/g, '-') + '.yml', yamlStr, 'utf8');
