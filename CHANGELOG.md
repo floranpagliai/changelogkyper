@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.11] - 2023-03-16
+### Added
+- Types config
+
 ## [1.0.10] - 2023-03-15
 ### Fixed
 - Last line return
