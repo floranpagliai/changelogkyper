@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.13] - 2023-03-22
+### Fixed
+- Types var declaration
+
 ## [1.0.12] - 2023-03-16
 ### Added
 - Types config

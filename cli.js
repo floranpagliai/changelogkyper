@@ -79,7 +79,7 @@ program
             }
         ];
 
-        changelogTypes = config['changelog_types'] || ['_'];
+        const changelogTypes = config['changelog_types'] || ['_'];
         if (changelogTypes.length > 1) {
             questions.unshift(
                 {
