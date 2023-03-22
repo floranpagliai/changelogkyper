@@ -15,6 +15,7 @@ let config = {};
 
 const Commander = require('commander');
 const program = new Commander.Command();
+const changelogTypes = config['changelog_types'] || ['_'];
 
 program
     .version(pkg.version)
@@ -79,7 +80,6 @@ program
             }
         ];
 
-        const changelogTypes = config['changelog_types'] || ['_'];
         if (changelogTypes.length > 1) {
             questions.unshift(
                 {
