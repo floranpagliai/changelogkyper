@@ -15,7 +15,6 @@ let config = {};
 
 const Commander = require('commander');
 const program = new Commander.Command();
-const changelogTypes = config['changelog_types'] || ['_'];
 
 program
     .version(pkg.version)
@@ -63,6 +62,8 @@ program
     .description('Add a changelog entry to non released changes.')
     .action(async function () {
         readConfig()
+        const changelogTypes = config['changelog_types'] || ['_'];
+
         let questions = [
             {
                 type: 'numeral',
@@ -109,6 +110,8 @@ program
     .description('Compile non released changes into changelog.')
     .action(async function (version) {
         readConfig()
+        const changelogTypes = config['changelog_types'] || ['_']
+
         const now = new Date()
         const dateString = now.getFullYear() + '-' + ("0" + (now.getMonth() + 1)).slice(-2)  + '-' + ("0" + (now.getDate())).slice(-2)
         let changelog = await getChangelog()
