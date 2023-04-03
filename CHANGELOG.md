@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.15] - 2023-04-03
+### Fixed
+- Types generation
+
 ## [1.0.14] - 2023-03-22
 ### Fixed
 - Types var declaration
